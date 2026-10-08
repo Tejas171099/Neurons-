@@ -12,7 +12,7 @@ from typing import Annotated
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from .models import PipelineResult
+from .models import ContractResponse, PipelineResult
 from .nlp import load_analyzer
 from .pipeline import MAX_ATTACHMENTS, Pipeline
 from .scanner import MAX_ATTACHMENT_BYTES
@@ -44,22 +44,30 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/v1/scan", response_model=PipelineResult)
+def _shape(result: PipelineResult, detail: bool) -> ContractResponse | PipelineResult:
+    return result if detail else result.to_contract()
+
+
+@app.post("/v1/scan", response_model=None)
 async def scan_multipart(
+    detail: bool = False,
     subject: str = Form(""),
     body: str = Form(""),
     files: Annotated[list[UploadFile] | None, File()] = None,
-) -> PipelineResult:
-    """Email body plus raw attachments as multipart/form-data."""
+) -> ContractResponse | PipelineResult:
+    """Email body plus raw attachments as multipart/form-data.
+
+    Returns the contract JSON; add ?detail=true for per-file evidence and timings.
+    """
     attachments: list[tuple[str, bytes]] = []
     for upload in (files or [])[:MAX_ATTACHMENTS]:
         data = await upload.read(MAX_ATTACHMENT_BYTES + 1)   # cap memory use per file
         attachments.append((upload.filename or "unnamed", data))
-    return await app.state.pipeline.run(subject, body, attachments)
+    return _shape(await app.state.pipeline.run(subject, body, attachments), detail)
 
 
-@app.post("/v1/scan/json", response_model=PipelineResult)
-async def scan_json(req: JsonScanRequest) -> PipelineResult:
+@app.post("/v1/scan/json", response_model=None)
+async def scan_json(req: JsonScanRequest, detail: bool = False) -> ContractResponse | PipelineResult:
     """Same thing for callers that already hold attachments as base64 strings."""
     attachments: list[tuple[str, bytes]] = []
     for item in req.attachments:
@@ -67,4 +75,4 @@ async def scan_json(req: JsonScanRequest) -> PipelineResult:
             attachments.append((item.file_name, base64.b64decode(item.content_base64, validate=True)))
         except (binascii.Error, ValueError):
             raise HTTPException(422, f"Attachment '{item.file_name}' is not valid base64")
-    return await app.state.pipeline.run(req.subject, req.body, attachments)
+    return _shape(await app.state.pipeline.run(req.subject, req.body, attachments), detail)

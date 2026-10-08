@@ -1,4 +1,13 @@
+"""Adapter between this pipeline and Shruthi's NLP text evaluation.
 
+Her model only has to satisfy `TextAnalyzer`. To plug it in without touching
+this repo, set an environment variable pointing at a factory or class:
+
+    NLP_ANALYZER=shruthi_nlp.model:PhishingTextModel
+
+`HeuristicTextAnalyzer` is a stand-in so the pipeline runs end to end today;
+it is deliberately crude and should not ship as the real evaluator.
+"""
 from __future__ import annotations
 
 import importlib

@@ -79,3 +79,9 @@ def scan_attachment(file_name: str, data: bytes, deadline: float | None = None, 
         attachment_risk_level=level,
         findings=col.findings,
     ))
+
+
+def scan_file(path: str | os.PathLike, deadline: float | None = None) -> AttachmentReport:
+    """Convenience wrapper: scan a .pdf/.html that is already on disk."""
+    with open(path, "rb") as fh:
+        return scan_attachment(os.path.basename(path), fh.read(MAX_ATTACHMENT_BYTES + 1), deadline)

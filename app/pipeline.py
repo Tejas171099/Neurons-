@@ -84,7 +84,6 @@ class Pipeline:
         if text.risk_level.rank >= RiskLevel.SUSPICIOUS.rank and att_score >= 30:
             level, score = RiskLevel.HIGH_THREAT, min(100, max(score, 60) + 10)
 
-        first = reports[0] if reports else None
         total_ms = (time.monotonic() - started) * 1000
         return PipelineResult(
             overall_risk_level=level,
@@ -92,7 +91,7 @@ class Pipeline:
             text_analysis=text,
             attachments=reports,
             attachment_scanned=any(r.attachment_scanned for r in reports),
-            file_name=first.file_name if first else None,
+            file_name=worst_attachment.file_name if worst_attachment else None,
             has_malicious_form=any(r.has_malicious_form for r in reports),
             attachment_risk_level=max((r.attachment_risk_level for r in reports), key=lambda lv: lv.rank, default=RiskLevel.SAFE),
             total_ms=round(total_ms, 1),

@@ -50,6 +50,17 @@ class TextReport(BaseModel):
     error: str | None = None
 
 
+class ContractResponse(BaseModel):
+    """The agreed integration schema. The first four keys are exactly the ones in the
+    assignment brief; the last two carry Shruthi's NLP result into the same document."""
+    attachment_scanned: bool
+    file_name: str | None
+    has_malicious_form: bool
+    attachment_risk_level: RiskLevel
+    overall_risk_level: RiskLevel
+    text_analysis: TextReport
+
+
 class PipelineResult(BaseModel):
     """The single JSON document handed to Ruchit's backend."""
     overall_risk_level: RiskLevel
@@ -63,3 +74,14 @@ class PipelineResult(BaseModel):
     attachment_risk_level: RiskLevel = RiskLevel.SAFE
     total_ms: float
     within_budget: bool
+
+    def to_contract(self) -> ContractResponse:
+        """Slim, stable view for Ruchit's backend (see ContractResponse)."""
+        return ContractResponse(
+            attachment_scanned=self.attachment_scanned,
+            file_name=self.file_name,
+            has_malicious_form=self.has_malicious_form,
+            attachment_risk_level=self.attachment_risk_level,
+            overall_risk_level=self.overall_risk_level,
+            text_analysis=self.text_analysis,
+        )
