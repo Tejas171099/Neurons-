@@ -79,3 +79,28 @@ class PipelineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContractTests(unittest.TestCase):
+    def test_contract_has_exactly_the_agreed_keys(self):
+        p = Pipeline(HeuristicTextAnalyzer())
+        try:
+            res = run(p, "s", "b", [("HDFC_Security_Update.pdf", samples.pdf_with_link("http://hdfc-login-update.xyz"))])
+        finally:
+            p.close()
+        payload = json.loads(res.to_contract().model_dump_json())
+        self.assertEqual(
+            set(payload),
+            {"attachment_scanned", "file_name", "has_malicious_form", "attachment_risk_level", "overall_risk_level", "text_analysis"},
+        )
+        self.assertEqual(payload["file_name"], "HDFC_Security_Update.pdf")
+        self.assertIs(payload["has_malicious_form"], True)
+        self.assertEqual(payload["attachment_risk_level"], "HIGH_THREAT")
+
+    def test_flat_fields_mirror_the_worst_attachment(self):
+        p = Pipeline(HeuristicTextAnalyzer())
+        try:
+            res = run(p, "s", "b", [("ok.pdf", samples.pdf_clean()), ("bad.html", samples.PHISHING_HTML)])
+        finally:
+            p.close()
+        self.assertEqual(res.file_name, "bad.html")
