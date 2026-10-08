@@ -36,7 +36,6 @@ class DistilBertTextAnalyzer:
         if not self.is_loaded:
             return HeuristicTextAnalyzer().analyze(subject, body)
 
-        # Match Shruti's exact token formatting logic: "from: ... | subject: ... | body: ..."
         formatted_text = f"from: unknown | subject: {subject} | body: {body}"
 
         inputs = self.tokenizer(
@@ -50,7 +49,6 @@ class DistilBertTextAnalyzer:
         with torch.no_grad():
             outputs = self.model(**inputs)
             probs = torch.softmax(outputs.logits, dim=-1)[0]
-            # Assumes Index 1 corresponds to Spam / Phishing
             phishing_prob = float(probs[1].item())
 
         score = int(phishing_prob * 100)
@@ -94,5 +92,4 @@ def load_analyzer() -> TextAnalyzer:
         factory = getattr(importlib.import_module(module_name), attr)
         return factory()
     
-    # Default to DistilBertTextAnalyzer if saved model exists
     return DistilBertTextAnalyzer()
