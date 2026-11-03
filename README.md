@@ -18,3 +18,7 @@ Try it:
 
 Privacy: bodies live only in request memory; nothing is written to a DB, disk or logs.
 2s fail-safe: `engine.HARD_TIMEOUT_S` -> returns `risk_level: UNDER_REVIEW`.
+
+## Additional project: UPI fraud detection
+
+The [`upi_fraud`](./upi_fraud/) project contains a synthetic-data UPI fraud classifier, its training and benchmarking scripts, generated datasets and model artifacts. See its [report](./upi_fraud/REPORT.md) for methodology and results.

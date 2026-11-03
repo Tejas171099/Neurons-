@@ -1,0 +1,26 @@
+{
+ "model_file_kb": 181.3,
+ "model_json_kb": 219.5,
+ "n_trees": 120,
+ "rss_baseline_mb": 27.30859375,
+ "rss_after_import_mb": 146.1953125,
+ "rss_after_model_mb": 151.00390625,
+ "model_load_delta_mb": 4.81,
+ "xgb_import_delta_mb": 118.9,
+ "feature_ms": {
+  "p50": 0.033,
+  "p95": 0.071,
+  "p99": 0.203
+ },
+ "inference_ms": {
+  "p50": 0.121,
+  "p95": 0.261,
+  "p99": 0.376
+ },
+ "end_to_end_ms": {
+  "p50": 0.154,
+  "p95": 0.334,
+  "p99": 0.571
+ },
+ "batch_throughput_per_s": 853054
+}
